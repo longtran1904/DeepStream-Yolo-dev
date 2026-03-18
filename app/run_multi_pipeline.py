@@ -257,15 +257,15 @@ def main():
     parser = argparse.ArgumentParser(
         description="Run DeepStream YOLO pipeline on multiple videos in parallel (no /tmp, file-only logs)"
     )
-    parser.add_argument("--video_folder", type=str, default="../../datasets/Boreal-Forest-Fire/Boreal-Forest-Fire-Subset-B/Evo-Videos", help="Path to folder containing video files")
-    parser.add_argument("--num-processes", type=int, default=1, help="Number of parallel processes")
-    parser.add_argument("--batch-size", type=int, default=1, help="Batch size for inference (if applicable)")
-    parser.add_argument("--max-videos", type=int, default=None, help="Maximum number of videos to process")
-    parser.add_argument("--inference-log", type=str, default=None, help="Absolute path to save inference log")
+    parser.add_argument("--input_path", type=str, default="../../datasets/Boreal-Forest-Fire/Boreal-Forest-Fire-Subset-B/Evo-Videos", help="Path to folder containing video files")
+    parser.add_argument("--inference_processes", type=int, default=1, help="Number of parallel processes")
+    parser.add_argument("--batch_size", type=int, default=1, help="Batch size for inference (if applicable)")
+    parser.add_argument("--max_videos", type=int, default=None, help="Maximum number of videos to process")
+    parser.add_argument("--inference_log", type=str, default=None, help="Absolute path to save inference log")
 
     args = parser.parse_args()
-    folder = args.video_folder
-    num_processes = args.num_processes
+    input_path = args.input_path
+    inference_processes = args.inference_processes
     max_videos = args.max_videos
     batch_size = args.batch_size
     inference_log = args.inference_log
@@ -284,23 +284,23 @@ def main():
     main_logger.info(f"LOGS_DIR={LOGS_DIR}")
     main_logger.info(f"RUN_CONFIGS_DIR={RUN_CONFIGS_DIR}")
 
-    videos = get_video_files(folder)
+    videos = get_video_files(input_path)
     if not videos:
         main_logger.error(f"Current pwd: {os.getcwd()}")
-        main_logger.error(f"No video files found in {folder}")
+        main_logger.error(f"No video files found in {input_path}")
         sys.exit(1)
 
     if max_videos is not None and max_videos > 0:
         videos = videos[:max_videos]
 
-    main_logger.info(f"Found {len(videos)} video(s) to process from {folder}")
-    main_logger.info(f"Using {num_processes} parallel process(es)")
+    main_logger.info(f"Found {len(videos)} video(s) to process from {input_path}")
+    main_logger.info(f"Using {inference_processes} parallel process(es)")
 
     shared_index = multiprocessing.Value("i", 0)
     lock = multiprocessing.Lock()
 
     processes = []
-    for i in range(num_processes):
+    for i in range(inference_processes):
         p = multiprocessing.Process(
             target=worker, args=(videos, batch_size, shared_index, lock, LOGS_DIR, RUN_CONFIGS_DIR, i)
         )
